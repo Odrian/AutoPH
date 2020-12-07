@@ -63,13 +63,12 @@ def Addons(msg):
 	x = msg.pose.pose.position.x
 
 if __name__ == '__main__':
-	rospy.loginfo('Test')
 	rospy.init_node('line_control')
 	rospy.Subscriber('/error_lane', Float64, cbError, queue_size=1)
 	rospy.Subscriber('/new_blobs', BlobArray, visError, queue_size=1)
 	rospy.Subscriber('/odom', Odometry, Addons, queue_size=1)
 	while not rospy.is_shutdown():
 		try:
-			rospy.sleep(0.02)
+			rospy.sleep(0.1)
 		except KeyboardInterrupt:
 			break
