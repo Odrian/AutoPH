@@ -21,15 +21,20 @@ def cbError(error):
 
 def visError(msg):
 	global move_flag
-	rospy.loginfo(msg)
-	if id == 0 and not move_flag:
+	idd = msg.blobs[0].id
+	if idd == 0 and not move_flag:
 		move_flag = True
-	elif id == 1:
+	elif idd == 1 and move_flag:
+		rospy.loginfo(id)
 		move_flag = False
 		velocity = Twist()
 		velocity.angular.z = 0
 		velocity.linear.x = 0
 		pub_vel.publish(velocity)
+	elif idd == 2:
+		pass
+	elif idd == 3:
+		pass
 
 if __name__ == '__main__':
 	rospy.loginfo('Test')
