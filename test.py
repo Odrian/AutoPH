@@ -12,11 +12,11 @@ def cbError(error):
 	rospy.loginfo(error)
 
 def visError(msg):
-    rospy.loginfo(msg)
+	rospy.loginfo(msg.blobs)
 
 if __name__ == '__main__':
 	rospy.init_node('line_control')
-	rospy.Subscriber('/error_lane', Float64, cbError, queue_size=1)
+#	rospy.Subscriber('/error_lane', Float64, cbError, queue_size=1)
 	rospy.Subscriber('/new_blobs', BlobArray, visError, queue_size=1)
 	while not rospy.is_shutdown():
 		try:
