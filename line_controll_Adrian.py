@@ -21,10 +21,11 @@ def cbError(error):
 
 def visError(msg):
 	global move_flag
+	id = msg.id
 	rospy.loginfo(msg)
 	if id == 0 and not move_flag:
 		move_flag = True
-	elif id == 1:
+	elif id == 1 and move_flag:
 		move_flag = False
 		velocity = Twist()
 		velocity.angular.z = 0
@@ -35,7 +36,7 @@ if __name__ == '__main__':
 	rospy.loginfo('Test')
 	rospy.init_node('line_control')
 	rospy.Subscriber('/error_lane', Float64, cbError, queue_size=1)
-	rospy.Subscriber('/new_blobs', BlobArray, visError, queue_size=1)
+	rospy.Subscriber('/vel', BlobArray, visError, queue_size=1)
 	while not rospy.is_shutdown():
 		try:
 			rospy.sleep(0.1)
