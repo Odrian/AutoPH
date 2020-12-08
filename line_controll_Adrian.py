@@ -13,6 +13,8 @@ rotate_flag = True
 alr_park = False
 vis_park = False
 parking = False
+flag6 = False
+park = 0
 integral = 0
 x = 0
 time = 0.0
@@ -21,7 +23,7 @@ rot = 0
 err = 0.0
 def cbError(error):
 	global integral, move_flag, rotate_flag, parking, err
-	if move_flag and not parking:
+	if move_flag:
 		velocity = Twist()
 		err = error.data
 		proportional = 0.0032*err
@@ -62,12 +64,20 @@ def Addons(msg):
 
 def Distance(msg):
 	global dist
-	dist = msg.ranges[270]
+	dist = msg.ranges
 #	rospy.loginfo(dist)
 
 def loop():
-	global time, vis_park, move_flag, parking
+	global time, vis_park, move_flag, parking, flag6, dist, park
 	if not parking and vis_park:
+		if rospy.get_time() - time > 0.1 and not flag6:
+			flag6 = True
+			rospy.loginfo(dist[0])
+			rospy.loginfo(type(dist[0]))
+			if str(dist[0]) == 'inf':
+				park = 2
+			else:
+				park = 1
 		if rospy.get_time() - time > 2:
 			vis_park = False
 			move_flag = False
@@ -79,6 +89,14 @@ def loop():
 			parking = True
 			move_flag = True
 			Parking()
+	if parking:
+		if dist[270] < 0.5:
+			rospy.loginfo('FACK')
+			move_flag = False
+			v2 = Twist()
+			v2.linear.x = 0.0
+			v2.angular.z = 0.0
+			pub_vel.publish(v2)
 
 def Parking():
 	global parking, dist, err
@@ -92,11 +110,11 @@ def Parking():
 	v_left.angular.z = 0.4
 	v_left.linear.x = 0.0
 	pub_vel.publish(v_right)
-	sleep(abs(err)*0.1)
+	sleep(abs(err)*0.13)
 	pub_vel.publish(v_stop)
-	sleep(1)
-	rospy.loginfo('vse')
-	parking = False
+#	sleep(1)
+#	rospy.loginfo('vse')
+#	parking = False
 
 if __name__ == '__main__':
 	rospy.init_node('line_control')
