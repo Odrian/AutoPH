@@ -67,21 +67,18 @@ def loop():
 	global time, vis_park, rotate_flag, move_flag, parking
 	if not parking and vis_park:
 		if rospy.get_time() - time > 2:
-			rospy.loginfo('1')
 			vis_park = False
 			move_flag = False
 			v1 = Twist()
 			v1.linear.x = 0.0
 			v1.angular.z = 0.5
 			pub_vel.publish(v1)
-			sleep(2)
-			rospy.loginfo('2')
+			sleep(3)
 			move_flag = True
 			rotate_flag = False
-			sleep(2)
+			sleep(3)
 			parking = True
 			rotate_flag = True
-			rospy.loginfo('3')
 			Parking()
 
 def Parking():
