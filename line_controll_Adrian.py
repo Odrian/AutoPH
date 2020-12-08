@@ -16,7 +16,7 @@ parking = False
 integral = 0
 x = 0
 time = 0.0
-dist = []
+dist = 0
 def cbError(error):
 	global integral, move_flag, rotate_flag, parking
 	if move_flag and not parking:
@@ -56,10 +56,11 @@ def Addons(msg):
 
 def Distance(msg):
 	global dist
-	dist = msg.ranges
+	dist = msg.ranges[89]
 
 def loop():
-	global time, vis_park, rotate_flag, move_flag, parking
+	global time, vis_park, rotate_flag, move_flag, parking, dist
+	rospy.loginfo(dist)
 	if not parking and vis_park:
 		if rospy.get_time() - time > 2:
 			vis_park = False
