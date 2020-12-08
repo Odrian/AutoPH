@@ -18,12 +18,14 @@ x = 0
 time = 0.0
 dist = 0
 rot = 0
+err = 0.0
 def cbError(error):
-	global integral, move_flag, rotate_flag, parking
+	global integral, move_flag, rotate_flag, parking, err
 	if move_flag and not parking:
 		velocity = Twist()
-		proportional = 0.0032*error.data
-		integral = 0.000005*error.data
+		err = error.data
+		proportional = 0.0032*err
+		integral = 0.000005*err
 		up = proportional + integral
 		velocity.angular.z = up
 		if rotate_flag:
@@ -46,7 +48,7 @@ def visError(msg):
 			pub_vel.publish(vstop)
 		elif idd == 2:
 			time = rospy.get_time()
-			if y > -0.6 and x > 1.0 and not alr_park and not vis_park:
+			if y > -0.6 and x > 1.0 or not alr_park and not vis_park:
 				vis_park = True
 				alr_park = True
 		elif idd == 3:
@@ -64,7 +66,7 @@ def Distance(msg):
 #	rospy.loginfo(dist)
 
 def loop():
-	global time, vis_park, rotate_flag, move_flag, parking
+	global time, vis_park, move_flag, parking
 	if not parking and vis_park:
 		if rospy.get_time() - time > 2:
 			vis_park = False
@@ -74,15 +76,12 @@ def loop():
 			v1.angular.z = 0.5
 			pub_vel.publish(v1)
 			sleep(3)
-			move_flag = True
-			rotate_flag = False
-			sleep(3)
 			parking = True
-			rotate_flag = True
+			move_flag = True
 			Parking()
 
 def Parking():
-	global parking, dist
+	global parking, dist, err
 	v_stop, v_right, v_left, v_go = Twist(), Twist(), Twist(), Twist()
 	v_stop.angular.z = 0.0
 	v_stop.linear.x = 0.0
@@ -92,10 +91,10 @@ def Parking():
 	v_right.linear.x = 0.0
 	v_left.angular.z = 0.4
 	v_left.linear.x = 0.0
-	pub_vel.publish(v_go)
-	for i in range(50):
-		sleep(0.1)
-		pass
+	pub_vel.publish(v_right)
+	sleep(abs(err)*0.1)
+	pub_vel.publish(v_stop)
+	sleep(1)
 	rospy.loginfo('vse')
 	parking = False
 
