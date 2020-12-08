@@ -17,6 +17,7 @@ integral = 0
 x = 0
 time = 0.0
 dist = 0
+rot = 0
 def cbError(error):
 	global integral, move_flag, rotate_flag, parking
 	if move_flag and not parking:
@@ -27,6 +28,8 @@ def cbError(error):
 		velocity.angular.z = up
 		if rotate_flag:
 			velocity.linear.x = 0.15 - 0.1*abs(up)
+		else:
+			velocity.linear.x = 0.0
 		pub_vel.publish(velocity)
 
 def visError(msg):
@@ -47,7 +50,8 @@ def visError(msg):
 				vis_park = True
 				alr_park = True
 		elif idd == 3:
-			rospy.loginfo('labirint')
+			if x < -1:
+				rospy.loginfo('labirint')
 
 def Addons(msg):
 	global x, y
@@ -56,29 +60,47 @@ def Addons(msg):
 
 def Distance(msg):
 	global dist
-	dist = msg.ranges[89]
+	dist = msg.ranges[270]
+#	rospy.loginfo(dist)
 
 def loop():
-	global time, vis_park, rotate_flag, move_flag, parking, dist
-	rospy.loginfo(dist)
+	global time, vis_park, rotate_flag, move_flag, parking
 	if not parking and vis_park:
 		if rospy.get_time() - time > 2:
+			rospy.loginfo('1')
 			vis_park = False
 			move_flag = False
 			v1 = Twist()
-			v1.angular.z = 0.0
 			v1.linear.x = 0.0
+			v1.angular.z = 0.5
 			pub_vel.publish(v1)
-			v1.angular.z = 0.4
-			pub_vel.publish(v1)
-			sleep(3)
-			move_flag, rotate_flag = True, False
-			sleep(1)
+			sleep(2)
+			rospy.loginfo('2')
+			move_flag = True
+			rotate_flag = False
+			sleep(2)
 			parking = True
+			rotate_flag = True
+			rospy.loginfo('3')
 			Parking()
 
 def Parking():
-	pass
+	global parking, dist
+	v_stop, v_right, v_left, v_go = Twist(), Twist(), Twist(), Twist()
+	v_stop.angular.z = 0.0
+	v_stop.linear.x = 0.0
+	v_go.angular.z = 0.0
+	v_go.linear.x = 0.15
+	v_right.angular.z = -0.4
+	v_right.linear.x = 0.0
+	v_left.angular.z = 0.4
+	v_left.linear.x = 0.0
+	pub_vel.publish(v_go)
+	for i in range(50):
+		sleep(0.1)
+		pass
+	rospy.loginfo('vse')
+	parking = False
 
 if __name__ == '__main__':
 	rospy.init_node('line_control')
