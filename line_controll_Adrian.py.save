@@ -16,22 +16,21 @@ parking = False
 Auto = 0
 integral = 0
 x = 0
-y = 0
 time = 0.0
 dist = 0
 rot = 0
-sx = 0
-sy = 0
+err = 0.0
 def cbError(error):
 	global integral, move_flag, rotate_flag, parking
 	if move_flag and not parking:
 		velocity = Twist()
-		proportional = 0.0037*error.data
-		integral = 0.000005*error.data
+		e
+		proportional = 0.0032*err
+		integral = 0.000005*err
 		up = proportional + integral
 		velocity.angular.z = up
 		if rotate_flag:
-			velocity.linear.x = 0.08 - 0.05*abs(up)
+			velocity.linear.x = 0.15 - 0.1*abs(up)
 		else:
 			velocity.linear.x = 0.0
 		pub_vel.publish(velocity)
@@ -48,25 +47,19 @@ def visError(msg):
 			vstop.angular.z = 0.0
 			vstop.linear.x = 0.0
 			pub_vel.publish(vstop)
-#		elif idd == 2:
-#			time = rospy.get_time()
-#			if y > -0.6 and x > 1.0 and not alr_park and not vis_park:
-#				rospy.loginfo('parking!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-#				vis_park = True
-#				alr_park = True
-#		elif idd == 3:
-#			if x < -1:
-#				move_flag = False
-#				rospy.loginfo('labirint')
+		elif idd == 2:
+			time = rospy.get_time()
+			if y > -0.6 and x > 1.0 or not alr_park and not vis_park:
+				vis_park = True
+				alr_park = True
+		elif idd == 3:
+			if x < -1:
+				rospy.loginfo('labirint')
 
 def Addons(msg):
-	global x, y, sx, sy
-	y = msg.pose.pose.position.y - sy - 1.7
-	x = msg.pose.pose.position.x - sx
-	if sx == 0:
-		rospy.loginfo('ss')
-		sx = x
-		sy = y + 1.7
+	global x, y
+	y = msg.pose.pose.position.y
+	x = msg.pose.pose.position.x
 
 def Distance(msg):
 	global dist
@@ -74,22 +67,20 @@ def Distance(msg):
 
 def loop():
 	global time, vis_park, move_flag, rotate_flag, parking, flag6, dist, Auto
-	rosy.loginfo('NOOOOO!')
 	if not parking and vis_park:
 		if 1.8 > rospy.get_time() - time > 1.25 and Auto != 1:
-			rospy.loginfo(dist[0])
 			if dist[0] < 1.0:
 				Auto = 1
 			else:
 				Auto = 2
 		if rospy.get_time() - time > 2:
+			rospy.loginfo(Auto)
 			vis_park = False
 			parking = True
 			Parking()
-			parking = False
 
 def Parking():
-	global dist, Auto
+	global parking, dist, Auto
 	v_stop, v_right, v_left, v_go = Twist(), Twist(), Twist(), Twist()
 	v_stop.angular.z = 0.0
 	v_stop.linear.x = 0.0
@@ -97,46 +88,41 @@ def Parking():
 	v_go.linear.x = 0.15
 	v_right.angular.z = -0.4
 	v_right.linear.x = 0.0
-	v_left.angular.z = 0.4
+	v_left.angular.z 0.4
 	v_left.linear.x = 0.0
-	rospy.loginfo(Auto)
-	sr = 1
-	st = 2
 	pub_vel.publish(v_left)
-	sleep(sr)
+	sleep(2)
 	pub_vel.publish(v_go)
-	sleep(st)
+	sleep(2)
 	if Auto == 2:
 		rospy.loginfo('машинка 1')
 		Parking2()
-	pub_vel.publish(v_go)
-	sleep(st)
+		pub_vel.publish(v_go)
+	sleep(2)
 	if Auto == 1:
 		rospy.loginfo('машинка 2')
 		Parking2()
-	pub_vel.publish(v_go)
-	sleep(st)
+		pub_vel.publish(v_go)
+	sleep(2)
 	rospy.loginfo('vse')
+	parking = False
 
 def Parking2():
-	v_stop, v_right, v_left, v_go = Twist(), Twist(), Twist(), Twist()
+	v_stop, v_right, v_go = Twist(), Twist(), Twist()
 	v_stop.angular.z = 0.0
 	v_stop.linear.x = 0.0
 	v_go.angular.z = 0.0
 	v_go.linear.x = 0.15
 	v_right.angular.z = -0.4
 	v_right.linear.x = 0.0
-	v_left.angular.z = 0.4
-	v_left.linear.x = 0.0
-	sr = 3
-	sm = 1.7
+	sr = 2
+	sm = 2
 	pub_vel.publish(v_right)
 	sleep(sr)
 	pub_vel.publish(v_go)
 	sleep(sm)
-	pub_vel.publish(v_stop)
-	rospy.sleep(1)
-	pub_vel.publish(v_left)
+	sleep(2)
+	pub_vel.publish(v_right)
 	sleep(sr * 2)
 	pub_vel.publish(v_go)
 	sleep(sm)
@@ -153,6 +139,6 @@ if __name__ == '__main__':
 	while not rospy.is_shutdown():
 		try:
 			rospy.sleep(0.05)
-#			loop()
+			loop()
 		except KeyboardInterrupt:
 			break
